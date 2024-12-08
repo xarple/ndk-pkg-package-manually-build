@@ -65,6 +65,11 @@ on:
         type: boolean
         default: false
 
+      debug-symbols:
+        description: generate debug symbols
+        type: boolean
+        default: false
+
       generate-maven-repo:
         description: generate maven local repository bundle
         type: boolean
@@ -92,11 +97,17 @@ jobs:
       - run: ./ndk-pkg sysinfo
       - run: ./ndk-pkg update
 
-      - if: ${{ github.event.inputs.static == 'true' }}
+      - if: ${{ github.event.inputs.static == 'true' && github.event.inputs.debug-symbols == 'false' }}
         run: ./ndk-pkg install android-${{ github.event.inputs.target-api }}-${{ github.event.inputs.target-abis }}/${{ github.event.inputs.package-name }} --profile=${{ github.event.inputs.build-type }} ${{ github.event.inputs.log-level }} --static
 
-      - if: ${{ github.event.inputs.static == 'false' }}
+      - if: ${{ github.event.inputs.static == 'true' && github.event.inputs.debug-symbols == 'true' }}
+        run: ./ndk-pkg install android-${{ github.event.inputs.target-api }}-${{ github.event.inputs.target-abis }}/${{ github.event.inputs.package-name }} --profile=${{ github.event.inputs.build-type }} ${{ github.event.inputs.log-level }} --static --build-type=debug
+
+      - if: ${{ github.event.inputs.static == 'false' && github.event.inputs.debug-symbols == 'false' }}
         run: ./ndk-pkg install android-${{ github.event.inputs.target-api }}-${{ github.event.inputs.target-abis }}/${{ github.event.inputs.package-name }} --profile=${{ github.event.inputs.build-type }} ${{ github.event.inputs.log-level }}
+
+      - if: ${{ github.event.inputs.static == 'false' && github.event.inputs.debug-symbols == 'true' }}
+        run: ./ndk-pkg install android-${{ github.event.inputs.target-api }}-${{ github.event.inputs.target-abis }}/${{ github.event.inputs.package-name }} --profile=${{ github.event.inputs.build-type }} ${{ github.event.inputs.log-level }} --build-type=debug
 
       - name: pack
         run: |
